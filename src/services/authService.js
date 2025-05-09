@@ -1,4 +1,5 @@
 // src/services/authService.js
+const apiUrl1 = process.env.REACT_APP_API_URL;
 
 const authService = {
     // Check if user is logged in
@@ -27,7 +28,7 @@ const authService = {
       formData.append('username', username);
       formData.append('password', password);
       
-      const response = await fetch('http://localhost:8000/token', {
+      const response = await fetch(`${apiUrl1}/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -47,7 +48,7 @@ const authService = {
     
     // Register user
     register: async (userData) => {
-      const response = await fetch('http://localhost:8000/register', {
+      const response = await fetch(`${apiUrl1}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

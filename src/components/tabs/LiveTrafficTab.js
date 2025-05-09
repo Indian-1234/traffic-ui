@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchWithTimeout, mockApiResponse } from '../../utils/apiUtils';
 import tt from '@tomtom-international/web-sdk-maps';
-
+const apiUrl1 = process.env.REACT_APP_API_URL;
 const LiveTrafficTab = ({
   formData,
   handleInputChange,
@@ -92,7 +92,7 @@ const LiveTrafficTab = ({
         if (!token) throw new Error("No authentication token found");
     
         // Build API URL
-        const apiUrl = `http://localhost:8000/live-data?area=${formData.area}&radius=${formData.radius}&lat=${formData.latitude}&lon=${formData.longitude}`;
+        const apiUrl = `${apiUrl1}/live-data?area=${formData.area}&radius=${formData.radius}&lat=${formData.latitude}&lon=${formData.longitude}`;
     
         const response = await fetchWithTimeout(apiUrl, {
           method: 'GET',

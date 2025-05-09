@@ -1,5 +1,6 @@
 import React from 'react';
 import { fetchWithTimeout, mockApiResponse } from '../../utils/apiUtils';
+const apiUrl1 = process.env.REACT_APP_API_URL;
 
 const TrafficSummaryTab = ({ 
   formData, 
@@ -25,7 +26,7 @@ const TrafficSummaryTab = ({
         if (!token) throw new Error("No authentication token found");
     
         // Make authenticated API call
-        const response = await fetchWithTimeout('http://localhost:8000/traffic-summary', {
+        const response = await fetchWithTimeout(`${apiUrl1}traffic-summary`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

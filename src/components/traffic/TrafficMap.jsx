@@ -3,6 +3,7 @@ import tt from '@tomtom-international/web-sdk-maps';
 import '@tomtom-international/web-sdk-maps/dist/maps.css';
 import './TrafficMap.css';
 import axios from 'axios';
+const apiUrl1 = process.env.REACT_APP_API_URL;
 
 const TrafficMap = () => {
   const mapElement = useRef(null);
@@ -202,7 +203,7 @@ const TrafficMap = () => {
         // Retrieve the token from localStorage
         const token = localStorage.getItem('authToken');
         alert(token)
-        const response = await fetchWithTimeout('http://localhost:8000/predict', {
+        const response = await fetchWithTimeout(`${apiUrl1}/predict`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -271,7 +272,7 @@ const TrafficMap = () => {
       
       // Make API call using Axios with proper authorization header
       const response = await axios.post(
-        `http://localhost:8000/optimize-route?start_node=${formData.start_node}&end_node=${formData.end_node}&departure_time=${formData.time_of_day}`,
+        `${apiUrl1}/optimize-route?start_node=${formData.start_node}&end_node=${formData.end_node}&departure_time=${formData.time_of_day}`,
         {}, // Empty body
         {
           params: {
@@ -320,7 +321,7 @@ const TrafficMap = () => {
     try {
       let data;
       try {
-        const response = await fetchWithTimeout(`http://localhost:8000/live-data?area=${formData.area}&radius=${formData.radius}&lat=${formData.latitude}&lon=${formData.longitude}`);
+        const response = await fetchWithTimeout(`${apiUrl1}/live-data?area=${formData.area}&radius=${formData.radius}&lat=${formData.latitude}&lon=${formData.longitude}`);
 
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
@@ -364,7 +365,7 @@ const TrafficMap = () => {
     try {
       let data;
       try {
-        const response = await fetchWithTimeout('http://localhost:8000/traffic-summary');
+        const response = await fetchWithTimeout(`${apiUrl1}/traffic-summary`);
 
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fetchWithTimeout, mockApiResponse } from '../../utils/apiUtils';
+const apiUrl = process.env.REACT_APP_API_URL;
 
 const OptimizeRouteTab = ({ 
   formData, 
@@ -28,7 +29,7 @@ const OptimizeRouteTab = ({
         if (!token) throw new Error("No authentication token found");
     
         const response = await fetchWithTimeout(
-          `http://localhost:8000/optimize-route?start_node=${formData.start_node}&end_node=${formData.end_node}&departure_time=${formData.time_of_day}`,
+          `${apiUrl}/optimize-route?start_node=${formData.start_node}&end_node=${formData.end_node}&departure_time=${formData.time_of_day}`,
           {
             method: 'POST',
             headers: {

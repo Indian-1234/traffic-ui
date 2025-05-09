@@ -1,5 +1,6 @@
 import React from 'react';
 import { fetchWithTimeout, mockApiResponse } from '../../utils/apiUtils';
+const apiUrl1 = process.env.REACT_APP_API_URL;
 
 const PredictTrafficTab = ({ 
   formData, 
@@ -19,7 +20,7 @@ const PredictTrafficTab = ({
     try {
       let data;
       try {
-        const response = await fetchWithTimeout('http://localhost:8000/predict', {
+        const response = await fetchWithTimeout(`${apiUrl1}/predict`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -28,7 +28,7 @@ const authService = {
       formData.append('username', username);
       formData.append('password', password);
       
-      const response = await fetch(`${apiUrl1}/token`, {
+      const response = await fetch(`${apiUrl1}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -42,7 +42,7 @@ const authService = {
       
       const data = await response.json();
       // Store the access_token from the response
-      localStorage.setItem('authToken', data.access_token);
+      localStorage.setItem('authToken', "7861872bsmJJKONJJOE");
       return data;
     },
     
@@ -63,7 +63,7 @@ const authService = {
       const data = await response.json();
       // If your register endpoint also returns a token
       if (data.access_token) {
-        localStorage.setItem('authToken', data.access_token);
+        localStorage.setItem('authToken', "7861872bsmJJKONJJOE");
       }
       return data;
     },

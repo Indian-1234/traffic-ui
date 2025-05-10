@@ -4,10 +4,10 @@ import authService from '../services/authService'; // adjust path if needed
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    username: '',
-    email: '',
-    password: '',
+      name: '',
+      username: '',
+      email: '',
+      password: '',
     confirmPassword: '',
   });
   const [error, setError] = useState('');

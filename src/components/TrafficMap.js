@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import tt from '@tomtom-international/web-sdk-maps';
 import '@tomtom-international/web-sdk-maps/dist/maps.css';
 import '../components/traffic/TrafficMap.css';
+import { Menu, Bell, User, Settings, HelpCircle } from 'lucide-react';
 
 // Import Tab Components
 import PredictTrafficTab from './tabs/PredictTrafficTab';
@@ -80,6 +81,13 @@ const TrafficMap = () => {
     }
   }, []);
 
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    setTrafficData([]);       // Clear traffic results
+    setError(null);           // Clear any existing errors
+    setLoading(false);        // Reset loading state
+  };
+
   // Update map markers when traffic data changes
   useEffect(() => {
     if (!map || !trafficData.length) return;
@@ -124,14 +132,44 @@ const TrafficMap = () => {
 
   return (
     <div className="traffic-map-container">
-      <h1>Quantum Traffic Optimization</h1>
+      <div className="bg-blue-700 text-white shadow-md">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button 
+              // onClick={toggleSidebar}
+              className="p-2 rounded-full hover:bg-blue-600 transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <button className="p-2 rounded-full hover:bg-blue-600 transition-colors relative">
+              <Bell size={20} />
+              <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs flex items-center justify-center">3</span>
+            </button>
+            <button className="p-2 rounded-full hover:bg-blue-600 transition-colors">
+              <Settings size={20} />
+            </button>
+            <button className="p-2 rounded-full hover:bg-blue-600 transition-colors">
+              <HelpCircle size={20} />
+            </button>
+            <div className="flex items-center space-x-2 border-l pl-4 border-blue-600">
+              <div className="bg-blue-800 rounded-full p-1">
+                <User size={20} />
+              </div>
+              <span className="text-sm font-medium">Admin</span>
+            </div>
+          </div>
+        </div>
+      </div>
       
-      {apiKeyError && (
+      {/* {apiKeyError && (
         <div className="api-key-error">
           <p>There was an error initializing the map. Please check your TomTom API key or internet connection.</p>
           <p>The application will continue to function with limited features.</p>
         </div>
-      )}
+      )} */}
       
       <div className="app-layout">
         <div className="map-container" ref={mapElement}></div>
@@ -140,25 +178,25 @@ const TrafficMap = () => {
           <div className="tab-bar">
             <button 
               className={activeTab === 'predict' ? 'active' : ''}
-              onClick={() => setActiveTab('predict')}
+              onClick={() => handleTabChange('predict')}
             >
               Predict Traffic
             </button>
             <button 
               className={activeTab === 'optimize' ? 'active' : ''}
-              onClick={() => setActiveTab('optimize')}
+              onClick={() => handleTabChange('optimize')} 
             >
               Optimize Route
             </button>
             <button 
               className={activeTab === 'live' ? 'active' : ''}
-              onClick={() => setActiveTab('live')}
+              onClick={() => handleTabChange('live')}
             >
               Live Traffic
             </button>
             <button 
               className={activeTab === 'summary' ? 'active' : ''}
-              onClick={() => setActiveTab('summary')}
+              onClick={() => handleTabChange('summary')}
             >
               Traffic Summary
             </button>

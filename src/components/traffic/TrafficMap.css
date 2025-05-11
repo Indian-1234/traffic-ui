@@ -1,6 +1,6 @@
 .traffic-map-container {
     font-family: 'Arial', sans-serif;
-    max-width: 1200px;
+    /* max-width: 1200px; */
     margin: 0 auto;
     padding: 20px;
   }
@@ -164,6 +164,6 @@
     }
     
     .controls-container {
-      width: 350px;
+      /* width: 350px; */
     }
   }

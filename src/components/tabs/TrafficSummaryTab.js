@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fetchWithTimeout, mockApiResponse } from '../../utils/apiUtils';
+
+// Using OpenCage Geocoding API
+const GEOCODE_API_URL = "https://api.opencagedata.com/geocode/v1/json";
+const GEOCODE_API_KEY = process.env.REACT_APP_OPENCAGE_API_KEY || "0cc7c3b90d0141779900c4ab0ac7479b";
 
 const TrafficSummaryTab = ({
   formData,
@@ -12,11 +16,28 @@ const TrafficSummaryTab = ({
   const [refreshInterval, setRefreshInterval] = useState(0); // 0 means no auto-refresh
   const [summaryData, setSummaryData] = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [districtCoordinates, setDistrictCoordinates] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [locationType, setLocationType] = useState('district'); // 'district' or 'search'
   
   const apiUrl = `${process.env.REACT_APP_API_URL}/traffic-summary`;
   
+  const tamilNaduDistricts = [
+    'Ariyalur', 'Chengalpattu', 'Chennai', 'Coimbatore', 'Cuddalore', 
+    'Dharmapuri', 'Dindigul', 'Erode', 'Kallakurichi', 'Kanchipuram',
+    'Kanyakumari', 'Karur', 'Krishnagiri', 'Madurai', 'Mayiladuthurai',
+    'Nagapattinam', 'Namakkal', 'Nilgiris', 'Perambalur', 'Pudukkottai',
+    'Ramanathapuram', 'Ranipet', 'Salem', 'Sivaganga', 'Tenkasi',
+    'Thanjavur', 'Theni', 'Thoothukudi', 'Tiruchirappalli', 'Tirunelveli',
+    'Tirupathur', 'Tiruppur', 'Tiruvallur', 'Tiruvannamalai', 'Tiruvarur',
+    'Vellore', 'Viluppuram', 'Virudhunagar'
+  ];
+
   // Set up auto-refresh
-  React.useEffect(() => {
+  useEffect(() => {
     let intervalId = null;
     
     if (refreshInterval > 0) {
@@ -29,6 +50,106 @@ const TrafficSummaryTab = ({
       if (intervalId) clearInterval(intervalId);
     };
   }, [refreshInterval]);
+
+  // Fetch coordinates when district changes
+  useEffect(() => {
+    if (selectedDistrict && locationType === 'district') {
+      fetchDistrictCoordinates(selectedDistrict);
+    }
+  }, [selectedDistrict, locationType]);
+
+  const fetchDistrictCoordinates = async (district) => {
+    try {
+      const response = await fetch(`${GEOCODE_API_URL}?q=${encodeURIComponent(district + ', Tamil Nadu, India')}&key=${GEOCODE_API_KEY}`);
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.results && data.results.length > 0) {
+        const { lat, lng } = data.results[0].geometry;
+        setDistrictCoordinates({ latitude: lat, longitude: lng });
+        
+        // Update form data with new coordinates
+        handleInputChange({
+          target: {
+            name: 'latitude',
+            value: lat
+          }
+        });
+        handleInputChange({
+          target: {
+            name: 'longitude',
+            value: lng
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching district coordinates:", err);
+      setError("Failed to fetch coordinates for the selected district");
+    }
+  };
+
+  const handleDistrictChange = (e) => {
+    setSelectedDistrict(e.target.value);
+    setLocationType('district');
+  };
+  
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+  
+  const searchLocation = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const response = await fetch(`${GEOCODE_API_URL}?q=${encodeURIComponent(searchQuery)}&key=${GEOCODE_API_KEY}`);
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.results && data.results.length > 0) {
+        setSearchResults(data.results.slice(0, 5));
+      } else {
+        setSearchResults([]);
+        setError("No results found for your search query");
+      }
+    } catch (err) {
+      console.error("Error searching location:", err);
+      setError("Failed to search for location");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+  
+  const selectSearchResult = (result) => {
+    const { lat, lng } = result.geometry;
+    setDistrictCoordinates({ latitude: lat, longitude: lng });
+    
+    // Update form data with new coordinates
+    handleInputChange({
+      target: {
+        name: 'latitude',
+        value: lat
+      }
+    });
+    handleInputChange({
+      target: {
+        name: 'longitude',
+        value: lng
+      }
+    });
+    
+    // Clear search results but keep the query
+    setSearchResults([]);
+    setLocationType('search');
+  };
 
   const getTrafficSummary = async (e, isAutoRefresh = false) => {
     if (e) e.preventDefault();
@@ -110,34 +231,97 @@ const TrafficSummaryTab = ({
         </p>
         
         <form onSubmit={getTrafficSummary} className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Default Map Center (Latitude)
-              </label>
-              <input
-                type="number"
-                name="latitude"
-                value={formData.latitude}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                step="0.0001"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Default Map Center (Longitude)
-              </label>
-              <input
-                type="number"
-                name="longitude"
-                value={formData.longitude}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                step="0.0001"
-              />
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="flex space-x-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setLocationType('district')}
+                    className={`px-3 py-1 text-sm rounded-md ${locationType === 'district' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Tamil Nadu Districts
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLocationType('search')}
+                    className={`px-3 py-1 text-sm rounded-md ${locationType === 'search' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  >
+                    Search Any Location
+                  </button>
+                </div>
+                
+                {locationType === 'district' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Select District
+                    </label>
+                    <select
+                      value={selectedDistrict}
+                      onChange={handleDistrictChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select a district</option>
+                      {tamilNaduDistricts.map((district) => (
+                        <option key={district} value={district}>
+                          {district}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Search Location
+                    </label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleSearchInputChange}
+                        placeholder="Enter a location name..."
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={searchLocation}
+                        disabled={isSearching || !searchQuery.trim()}
+                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50"
+                      >
+                        {isSearching ? 'Searching...' : 'Search'}
+                      </button>
+                    </div>
+                    
+                    {searchResults.length > 0 && (
+                      <div className="mt-2 border border-gray-200 rounded-md overflow-hidden max-h-60 overflow-y-auto">
+                        <ul className="divide-y divide-gray-200">
+                          {searchResults.map((result, index) => (
+                            <li 
+                              key={index}
+                              onClick={() => selectSearchResult(result)}
+                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                            >
+                              <p className="font-medium">{result.formatted}</p>
+                              <p className="text-xs text-gray-500">
+                                {result.components.country || ''} 
+                                {result.components.state ? `, ${result.components.state}` : ''}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+          
+          {districtCoordinates && (
+            <div className="text-sm text-gray-600">
+              Selected coordinates: {districtCoordinates.latitude.toFixed(4)}, {districtCoordinates.longitude.toFixed(4)}
+            </div>
+          )}
           
           <div className="flex justify-between items-center">
             <button
@@ -161,7 +345,7 @@ const TrafficSummaryTab = ({
               </select>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (!selectedDistrict && locationType === 'district') || (!districtCoordinates && locationType === 'search')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
               >
                 {loading ? 'Loading...' : 'Get Traffic Summary'}
@@ -183,7 +367,7 @@ const TrafficSummaryTab = ({
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   >
-                    <option value="downtown">Downtown</option>
+                    <option value="urban">Urban</option>
                     <option value="suburban">Suburban</option>
                     <option value="residential">Residential</option>
                     <option value="industrial">Industrial</option>
